@@ -3,7 +3,7 @@ from signal import pause
 from gpiozero import MotionSensor
 import paho.mqtt.publish as publish
 import paho.mqtt.client as mqtt
-import mqtt_settings as set
+import mqtt_settings as settings
 
 # Connect to MQTT
 # Read PIR sensor
