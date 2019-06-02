@@ -1,41 +1,32 @@
 import time
+from signal import pause
+from gpiozero import MotionSensor
 import paho.mqtt.publish as publish
 import paho.mqtt.client as mqtt
+import mqtt_settings as set
 
-#
 # Connect to MQTT
 # Read PIR sensor
-# On motion: send 1
-# Wait 4 seconds, turn off
-#
-# Run with forever
+# On motion: send motion payload
 
-auth = {
-  'username’:”MQTT_USER”,
-  'password’:”MQTT_PASS”
-}
+def mqtt_message(payload):
+    publish.single(set.mqtt_channel,
+      payload=payload,
+      hostname=set.mqtt_hostname,
+      client_id=set.client_id,
+      auth=set.auth,
+      port=set.mqtt_port,
+      protocol=mqtt.MQTTv311)
 
-from gpiozero import MotionSensor
+def when_motion():
+    print('Motion On')
+    mqtt_message(set.motion_detected)
 
+def when_no_motion():
+    print('Motion off')
+    mqtt_message(set.motion_undetected)
 
-pir = MotionSensor(4)
-
-while True:
-    if pir.motion_detected:
-#        print('Motion On')
-        publish.single(“CHANNEL/Motion/Switch",
-          payload="1",
-          hostname=“MQTT_HOST_IP”,
-          client_id="pi",
-          auth=auth,
-          port=1883,
-          protocol=mqtt.MQTTv311)
-        time.sleep(4)
-#        print('Motion Off')
-        publish.single(“CHANNEL/Motion/Switch",
-          payload="0",
-          hostname=“MQTT_HOST_IP”,
-          client_id="pi",
-          auth=auth,
-          port=1883,
-          protocol=mqtt.MQTTv311)
+pir = MotionSensor(set.pir_sensor_pin, queue_len=set.queue_length)
+pir.when_motion = when_motion
+pir.when_no_motion = when_no_motion
+pause()
